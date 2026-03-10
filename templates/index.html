@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snapping Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- UPLOAD PAGE -->
+    <div id="upload-page" class="page active">
+        <div class="upload-container">
+            <div class="logo">
+                <div class="logo-icon">📸</div>
+                <h1>Snapping Tool</h1>
+                <p class="logo-sub">ICICI Bank Site Measurement</p>
+                <p class="logo-desc">Upload your Excel sheet to get started</p>
+            </div>
+
+            <div class="upload-box" id="upload-box">
+                <div class="upload-icon">📂</div>
+                <p class="upload-text">Drag & Drop your Excel file here</p>
+                <p class="upload-sub">or</p>
+                <label for="file-input" class="browse-btn">Browse File</label>
+                <input type="file" id="file-input" accept=".xlsx,.xls" hidden>
+                <p class="file-types">Supported: .xlsx, .xls</p>
+            </div>
+
+            <div id="file-info" class="file-info hidden">
+                <span id="file-name-display"></span>
+                <button id="remove-file">✕</button>
+            </div>
+
+            <div id="upload-error" class="error-msg hidden"></div>
+
+            <button id="upload-btn" class="upload-btn" disabled>
+                Upload & Open
+            </button>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <span>Processing your file...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHEET VIEWER PAGE -->
+    <div id="sheet-page" class="page hidden">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button id="back-btn" class="back-btn">← Back</button>
+                <div class="topbar-title">
+                    <span class="tool-name">📸 Snapping Tool</span>
+                    <span id="file-title" class="file-name-topbar"></span>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-boq" onclick="switchTab('boq')">BOQ</button>
+                <button class="tab-btn" id="tab-measurement" onclick="switchTab('measurement')">Measurement Sheet</button>
+            </div>
+        </div>
+
+        <!-- BOQ TAB -->
+        <div id="boq-tab" class="tab-content active">
+            <div class="search-bar-container">
+                <input type="text" id="boq-search" placeholder="🔍 Search by item name (e.g. Softboard, ATM backdrop...)" />
+                <div id="search-results" class="search-results hidden"></div>
+            </div>
+            <div id="boq-table-wrapper" class="table-wrapper">
+                <table id="boq-table">
+                    <tbody id="boq-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MEASUREMENT TAB -->
+        <!-- MEASUREMENT TAB -->
+<div id="measurement-tab" class="tab-content">
+    <div class="search-bar-container">
+        <input type="text" id="measurement-search" placeholder="🔍 Search measurement items (e.g. Branch Area, Logo Wall...)" />
+        <div id="measurement-search-results" class="search-results hidden"></div>
+    </div>
+    <div id="measurement-table-wrapper" class="table-wrapper">
+                <table id="measurement-table">
+                    <tbody id="measurement-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <!-- SUB-ITEM CONFIRMATION MODAL -->
+<div id="subitem-confirm-modal" class="modal hidden">
+    <div class="modal-box">
+        <h3>📌 Sub-item Selected</h3>
+        <p id="subitem-modal-name"></p>
+        <p>Proceed to upload photo for this item?</p>
+        <div class="modal-btns">
+            <button id="subitem-modal-cancel" class="btn-cancel">Cancel</button>
+            <button id="subitem-modal-confirm" class="btn-confirm">Yes, Upload Photo</button>
+        </div>
+    </div>
+</div>
+
+<!-- UPLOAD IMAGE PAGE -->
+<div id="upload-image-page" class="page hidden">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button id="back-to-measurement-btn" class="back-btn">← Back</button>
+            <div class="topbar-title">
+                <span class="tool-name">📸 Snapping Tool</span>
+                <span id="selected-item-title" class="file-name-topbar"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="upload-image-container">
+        <div class="selected-item-info">
+            <h3 id="upload-item-heading"></h3>
+            <p id="upload-item-subheading"></p>
+        </div>
+
+       <!-- STEP INDICATOR -->
+<div class="steps-indicator">
+    <div class="step active" id="step1-indicator"><span class="step-num">1</span><span>Upload Photo</span></div>
+    <div class="step-arrow">→</div>
+    <div class="step" id="step2-indicator"><span class="step-num">2</span><span>Mark Dimensions</span></div>
+    <div class="step-arrow">→</div>
+    <div class="step" id="step3-indicator"><span class="step-num">3</span><span>Result</span></div>
+</div>
+<!-- STEP 1: Upload -->
+<div id="step1-content">
+    <div class="photo-upload-area" id="photo-upload-area">
+        <div class="photo-upload-icon">📷</div>
+        <p>Drag & Drop photo here</p>
+        <p class="upload-sub">or</p>
+        <label for="photo-input" class="browse-btn">Take / Choose Photo</label>
+        <input type="file" id="photo-input" accept="image/*" multiple hidden>
+        <p class="file-types">JPG, PNG supported • Place ruler in photo for reference</p>
+<p class="file-types" style="color:#1565c0;margin-top:4px;">💡 You can select multiple photos at once</p>
+    </div>
+    <div id="photo-upload-error" class="error-msg hidden"></div>
+</div>
+
+<div id="step2-content" class="hidden">
+    <div class="instruction-box">
+    <p>📏 <strong>Ruler → 4 Corners → Done!</strong></p>
+<p class="instruction-sub">
+    🟦 Click 2 ends of 1ft ruler first →
+    🟡 Click 4 corners of area (top-left → top-right → bottom-right → bottom-left)
+</p>
+    </div>
+    <div class="point-status">
+        <span id="dimension-status" style="font-weight:600;color:#e63900">Click both ends of the ruler first</span>
+    </div>
+    <div class="canvas-container">
+    <canvas id="corner-canvas"></canvas>
+    <canvas id="length-canvas" style="display:none"></canvas>
+</div>
+    <div class="measure-actions">
+        <button id="reset-length-btn" class="btn-cancel">↺ Redo All</button>
+<button id="confirm-dimensions-btn" class="btn-confirm hidden">✅ Looks Good → Next</button>
+    </div>
+</div>
+
+<div id="step3-content" class="hidden">
+    <div class="result-box">
+        <h3>📊 Measurement Result</h3>
+        <div class="result-grid">
+    <div class="result-item" id="result-length-row">
+        <span class="result-label">Length</span>
+        <span class="result-value" id="result-length">-</span>
+    </div>
+    <div class="result-item" id="result-breadth-row">
+        <span class="result-label">Breadth</span>
+        <span class="result-value" id="result-breadth">-</span>
+    </div>
+    <div class="result-item" id="result-height-row">
+        <span class="result-label">Height</span>
+        <span class="result-value" id="result-height">-</span>
+    </div>
+</div>
+        <div class="result-item highlight" style="margin-top:16px;padding:20px;">
+            <span class="result-label">📐 Total Area</span>
+            <span class="result-value" id="result-area" style="font-size:2rem;">-</span>
+        </div>
+        <div class="result-item-name" id="result-item-name"></div>
+    </div>
+    <div id="queue-assign-box" style="margin-top:16px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);display:none;">
+        <p style="font-weight:600;margin-bottom:10px;color:#333;">📋 Assign this measurement to:</p>
+        <div id="queue-assign-list"></div>
+    </div>
+    <div class="result-actions">
+        <button id="remeasure-btn" class="btn-cancel">↺ Remeasure</button>
+        <button id="save-result-btn" class="btn-confirm">💾 Save for Selected Item</button>
+    </div>
+    <div id="save-loading" class="loading hidden"><div class="spinner"></div><span>Saving...</span></div>
+    <div id="save-success" class="success-msg hidden"></div>
+    <div id="save-error" class="error-msg hidden"></div>
+</div>
+
+
+    </div>
+</div>
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-box">
+            <h3>✅ Item Selected</h3>
+            <p id="modal-item-name"></p>
+            <p>Do you want to proceed to the Measurement Sheet?</p>
+            <div class="modal-btns">
+                <button id="modal-cancel" class="btn-cancel">Cancel</button>
+                <button id="modal-confirm" class="btn-confirm">Yes, Go to Measurement Sheet</button>
+            </div>
+        </div>
+    </div>
+    <div id="dimension-choice-modal" class="modal hidden">
+    <div class="modal-box">
+        <h3>📐 What do you want to measure?</h3>
+        <p>Choose measurement mode:</p>
+        <div class="modal-btns" style="flex-direction:column;gap:10px;">
+            <button id="choice-length-only" class="btn-confirm" style="background:#1565c0;">📏 Length Only (mark multiple lengths)</button>
+            <button id="choice-breadth-only" class="btn-confirm" style="background:#7b1fa2;">📐 Breadth Only (mark multiple breadths)</button>
+            <button id="choice-lb" class="btn-confirm">📦 Length + Breadth (4 corners → area)</button>
+        </div>
+    </div>
+</div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+
