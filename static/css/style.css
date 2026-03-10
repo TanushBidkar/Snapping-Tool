@@ -192,12 +192,27 @@ body {
 
 #boq-search {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 20px;
     border: 2px solid #e63900;
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     outline: none;
     background: white;
+    height: 52px;
+}
+#measurement-search {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid #e63900;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    outline: none;
+    background: white;
+    height: 52px;
+}
+
+#measurement-search:focus {
+    box-shadow: 0 0 0 3px rgba(230,57,0,0.15);
 }
 
 #boq-search:focus { box-shadow: 0 0 0 3px rgba(230,57,0,0.15); }
