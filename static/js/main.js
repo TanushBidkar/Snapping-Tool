@@ -1257,8 +1257,13 @@ function applyHomography(H, p) {
         document.getElementById('apply-persp-btn').onclick = () => {
         if (perspPoints.length !== 4) return;
 
-        const outW = canvas.width;
-        const outH = canvas.height;
+        // Calculate natural output size from the selected quad (no zoom)
+const topEdge = Math.sqrt(Math.pow(perspPoints[1].x - perspPoints[0].x, 2) + Math.pow(perspPoints[1].y - perspPoints[0].y, 2));
+const bottomEdge = Math.sqrt(Math.pow(perspPoints[2].x - perspPoints[3].x, 2) + Math.pow(perspPoints[2].y - perspPoints[3].y, 2));
+const leftEdge = Math.sqrt(Math.pow(perspPoints[3].x - perspPoints[0].x, 2) + Math.pow(perspPoints[3].y - perspPoints[0].y, 2));
+const rightEdge = Math.sqrt(Math.pow(perspPoints[2].x - perspPoints[1].x, 2) + Math.pow(perspPoints[2].y - perspPoints[1].y, 2));
+const outW = Math.round((topEdge + bottomEdge) / 2);
+const outH = Math.round((leftEdge + rightEdge) / 2);
 
         // Draw clean photo onto a fresh offscreen canvas — no dots/lines
         const cleanCanvas = document.createElement('canvas');
