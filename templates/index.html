@@ -64,7 +64,7 @@
         <!-- BOQ TAB -->
         <div id="boq-tab" class="tab-content active">
             <div class="search-bar-container">
-                <input type="text" id="boq-search" placeholder="🔍 Search by item name (e.g. Softboard, ATM backdrop...)" />
+                <input type="text" id="boq-search" placeholder="🔍 Search by item name (e.g. Softboard, ATM backdrop...)" style="width:100%;font-size:1rem;padding:14px 18px;border-radius:10px;border:2px solid #e0e0e0;box-sizing:border-box;" />
                 <div id="search-results" class="search-results hidden"></div>
             </div>
             <div id="boq-table-wrapper" class="table-wrapper">
@@ -138,7 +138,6 @@
         <label for="photo-input" class="browse-btn">Take / Choose Photo</label>
         <input type="file" id="photo-input" accept="image/*" multiple hidden>
         <p class="file-types">JPG, PNG supported • Place ruler in photo for reference</p>
-<p class="file-types" style="color:#1565c0;margin-top:4px;">💡 You can select multiple photos at once</p>
     </div>
     <div id="photo-upload-error" class="error-msg hidden"></div>
 </div>
@@ -159,8 +158,8 @@
     <canvas id="length-canvas" style="display:none"></canvas>
 </div>
     <div class="measure-actions">
-        <button id="reset-length-btn" class="btn-cancel">↺ Redo All</button>
-<button id="confirm-dimensions-btn" class="btn-confirm hidden">✅ Looks Good → Next</button>
+        <button id="reset-length-btn" class="btn-cancel" style="display:none;">↺ Redo All</button>
+        <button id="confirm-dimensions-btn" class="btn-confirm hidden">✅ Looks Good → Next</button>
     </div>
 </div>
 
@@ -229,4 +228,5 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
+
 
