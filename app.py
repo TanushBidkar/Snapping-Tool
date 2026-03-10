@@ -2,17 +2,7 @@ from flask import Flask, render_template, request, jsonify, session
 import pandas as pd
 import os
 import json
-import firebase_admin
-from firebase_admin import credentials, storage
 
-app = Flask(__name__)
-app.secret_key = 'boq_tool_secret_key'
-
-# Initialize Firebase
-cred = credentials.Certificate('firebase_config.json')
-firebase_admin.initialize_app(cred, {
-    'storageBucket': 'ai-based-review-tools.firebasestorage.app'
-})
 
 app = Flask(__name__)
 app.secret_key = 'boq_tool_secret_key'
@@ -43,18 +33,7 @@ def upload_file():
 
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
-    
-    # Upload to Firebase Storage
-    try:
-        bucket = storage.bucket()
-        blob = bucket.blob(f'snapping_tool_uploads/{file.filename}')
-        blob.upload_from_filename(filepath)
-        blob.make_public()
-        firebase_url = blob.public_url
-        print(f'Uploaded to Firebase: {firebase_url}')
-    except Exception as fe:
-        print(f'Firebase upload failed: {fe}')
-        firebase_url = None
+    firebase_url = None
 
     # Read sheet names from the Excel file
     try:
@@ -146,23 +125,9 @@ def upload_photo():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     photo_filename = f"{timestamp}_{clean_item}{os.path.splitext(photo.filename)[1]}"
 
-    # Save locally first
     photo_path = os.path.join('uploads', photo_filename)
     photo.save(photo_path)
-
-    # Upload to Firebase Storage
-    try:
-        bucket = storage.bucket()
-        firebase_path = f"snapping_tool_uploads/photos/{photo_filename}"
-        blob = bucket.blob(firebase_path)
-        blob.upload_from_filename(photo_path)
-        blob.make_public()
-        firebase_url = blob.public_url
-        print(f'Photo uploaded to Firebase: {firebase_url}')
-        return jsonify({'success': True, 'url': firebase_url})
-    except Exception as fe:
-        print(f'Firebase photo upload failed: {fe}')
-        return jsonify({'success': False, 'error': str(fe)})
+    return jsonify({'success': True, 'url': None})
 @app.route('/save-measurement', methods=['POST'])
 def save_measurement():
     data = request.json
@@ -252,22 +217,33 @@ def save_measurement():
             if col_idxs['B'] is not None:
                 df.iat[idx, col_idxs['B']] = 'NA' if photo_B == 'NA' else round(float(breadth_ft), 3)
             if col_idxs['D/H'] is not None:
-                df.iat[idx, col_idxs['D/H']] = photo_DH if photo_DH not in (None, '') else 'NA'
+                df.iat[idx, col_idxs['D/H']] = photo_DH if photo_DH not in (None, '', 'NA') else 'NA'
             if col_idxs['QTY'] is not None:
                 from openpyxl.utils import get_column_letter
                 qty_col = col_idxs['QTY']
-                excel_row = idx + 1
-                l_col_letter = get_column_letter(col_idxs['L'] + 1) if col_idxs['L'] is not None else None
-                b_col_letter = get_column_letter(col_idxs['B'] + 1) if col_idxs['B'] is not None else None
-                dh_col_letter = get_column_letter(col_idxs['D/H'] + 1) if col_idxs['D/H'] is not None else None
-                if photo_L != 'NA' and photo_B != 'NA':
-                    formula = f"={l_col_letter}{excel_row}*{b_col_letter}{excel_row}"
-                elif photo_L != 'NA' and photo_DH not in (None, '', 'NA'):
-                    formula = f"={l_col_letter}{excel_row}*{dh_col_letter}{excel_row}"
-                elif photo_B != 'NA' and photo_DH not in (None, '', 'NA'):
-                    formula = f"={b_col_letter}{excel_row}*{dh_col_letter}{excel_row}"
+                excel_row = idx + 1  # 1-indexed Excel row
+                nos_col_letter = get_column_letter(col_idxs['Nos'] + 1) if col_idxs['Nos'] is not None else None
+                l_col_letter   = get_column_letter(col_idxs['L'] + 1)   if col_idxs['L']   is not None else None
+                b_col_letter   = get_column_letter(col_idxs['B'] + 1)   if col_idxs['B']   is not None else None
+                dh_col_letter  = get_column_letter(col_idxs['D/H'] + 1) if col_idxs['D/H'] is not None else None
+
+                has_L  = photo_L  not in (None, '', 'NA')
+                has_B  = photo_B  not in (None, '', 'NA')
+                has_DH = photo_DH not in (None, '', 'NA')
+
+                if has_L and has_B and nos_col_letter:
+                    formula = f"={nos_col_letter}{excel_row}*{l_col_letter}{excel_row}*{b_col_letter}{excel_row}"
+                elif has_L and has_DH and nos_col_letter:
+                    formula = f"={nos_col_letter}{excel_row}*{l_col_letter}{excel_row}*{dh_col_letter}{excel_row}"
+                elif has_B and has_DH and nos_col_letter:
+                    formula = f"={nos_col_letter}{excel_row}*{b_col_letter}{excel_row}*{dh_col_letter}{excel_row}"
+                elif has_L and nos_col_letter:
+                    formula = f"={nos_col_letter}{excel_row}*{l_col_letter}{excel_row}"
+                elif has_B and nos_col_letter:
+                    formula = f"={nos_col_letter}{excel_row}*{b_col_letter}{excel_row}"
                 else:
-                    formula = round(float(area_sqft), 2)
+                    formula = round(float(area_sqft), 3)
+
                 df.iat[idx, qty_col] = formula
 
             updated = True
@@ -301,12 +277,12 @@ def save_measurement():
         print(f"DEBUG final col_idxs: {col_idxs}")
         print(f"DEBUG target_cols (0-indexed): {target_cols}")
 
-        for r_idx, row in df.iterrows():
-            for c_idx, value in enumerate(row):
-                if c_idx not in target_cols:
-                    continue
-                cell = ws.cell(row=r_idx + 1, column=c_idx + 1)
-                # Skip merged cells — they are read-only slaves of the master cell
+        # Only write to the single target row, not all rows
+        target_row_idx = int(row_index_from_frontend) if row_index_from_frontend is not None else None
+        if target_row_idx is not None:
+            for c_idx in target_cols:
+                value = df.iat[target_row_idx, c_idx]
+                cell = ws.cell(row=target_row_idx + 1, column=c_idx + 1)
                 if isinstance(cell, MergedCell):
                     continue
                 if value == '' or value is None:
@@ -314,7 +290,7 @@ def save_measurement():
                 elif isinstance(value, str) and value == 'NA':
                     cell.value = 'NA'
                 elif isinstance(value, str) and value.startswith('='):
-                    cell.value = value  # write as Excel formula
+                    cell.value = value
                 elif isinstance(value, (int, float)):
                     cell.value = value
                 else:
