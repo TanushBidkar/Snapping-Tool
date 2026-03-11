@@ -260,10 +260,9 @@ def save_measurement():
             if col_idxs['Nos'] is not None and photo_nos not in (None, ''):
                 new_row[col_idxs['Nos']] = photo_nos
             if col_idxs['L'] is not None:
-                new_row[col_idxs['L']] = round(float(length_ft), 3) if length_ft not in (None, '') else ''
+                df.iat[idx, col_idxs['L']] = 'NA' if photo_L == 'NA' else str(round(float(length_ft), 3))
             if col_idxs['B'] is not None:
-                new_row[col_idxs['B']] = round(float(breadth_ft), 3) if breadth_ft not in (None, '') else ''
-            if col_idxs['D/H'] is not None:
+                df.iat[idx, col_idxs['B']] = 'NA' if photo_B == 'NA' else str(round(float(breadth_ft), 3))
                 new_row[col_idxs['D/H']] = photo_DH if photo_DH not in (None, '') else 'NA'
             # QTY always = area
             new_row[col_idxs['QTY']] = round(float(area_sqft), 2)
@@ -295,13 +294,11 @@ def save_measurement():
                     cell.value = 'NA'
                 elif isinstance(value, str) and value.startswith('='):
                     cell.value = value
-                elif isinstance(value, (int, float)):
-                    cell.value = value
-                else:
+                elif isinstance(value, (int, float)) and not (isinstance(value, float) and pd.isna(value)):
                     try:
                         cell.value = float(value)
-                    except (ValueError, TypeError):
-                        cell.value = value
+                    except (TypeError, ValueError):
+                        cell. Value = str(value)
         wb.save(filepath)
 
         return jsonify({'success': True})
