@@ -44,8 +44,10 @@
     const loading = document.getElementById('loading');
 
     uploadBox.addEventListener('click', (e) => {
-        if (e.target !== fileInput) fileInput.click();
-    });
+    if (e.target === fileInput) return;
+    if (e.target.tagName === 'LABEL') return;
+    fileInput.click();
+});
 
     uploadBox.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -787,7 +789,10 @@
         }
     });
 
-    document.getElementById('photo-upload-area').addEventListener('click', () => photoInput.click());
+    document.getElementById('photo-upload-area').addEventListener('click', (e) => {
+    if (e.target.tagName === 'LABEL') return;
+    photoInput.click();
+});
 
     function handlePhotoSelect(file) {
         if (!file.type.match(/^image\//)) {
