@@ -99,7 +99,7 @@ def get_measurement():
         if not measurement_sheet:
             return jsonify({'success': False, 'error': 'Measurement Sheet not found'})
 
-        df = pd.read_excel(filepath, sheet_name=measurement_sheet, header=None)
+        df = pd.read_excel(filepath, sheet_name=measurement_sheet, header=None, dtype=object)
         df = df.fillna('')
 
         rows = df.values.tolist()
@@ -149,7 +149,7 @@ def save_measurement():
         xl = pd.ExcelFile(filepath)
         measurement_sheet = next((s for s in xl.sheet_names if 'measurement' in s.lower()), None)
 
-        df = pd.read_excel(filepath, sheet_name=measurement_sheet, header=None)
+        df = pd.read_excel(filepath, sheet_name=measurement_sheet, header=None, dtype=object)
 
         # Find the row matching item_name and update Photographic Dimension and QTY columns
         item_parts = [p.strip() for p in item_name.split('›') if p.strip()]
