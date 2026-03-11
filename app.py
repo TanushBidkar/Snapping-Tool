@@ -213,12 +213,16 @@ def save_measurement():
             if col_idxs['Nos'] is not None and photo_nos not in (None, ''):
                 df.iat[idx, col_idxs['Nos']] = photo_nos
             if col_idxs['L'] is not None:
+                df.iloc[:, col_idxs['L']] = df.iloc[:, col_idxs['L']].astype(object)
                 df.iat[idx, col_idxs['L']] = 'NA' if photo_L == 'NA' else round(float(length_ft), 3)
             if col_idxs['B'] is not None:
+                df.iloc[:, col_idxs['B']] = df.iloc[:, col_idxs['B']].astype(object)
                 df.iat[idx, col_idxs['B']] = 'NA' if photo_B == 'NA' else round(float(breadth_ft), 3)
             if col_idxs['D/H'] is not None:
+                df.iloc[:, col_idxs['D/H']] = df.iloc[:, col_idxs['D/H']].astype(object)
                 df.iat[idx, col_idxs['D/H']] = photo_DH if photo_DH not in (None, '', 'NA') else 'NA'
             if col_idxs['QTY'] is not None:
+                df.iloc[:, col_idxs['QTY']] = df.iloc[:, col_idxs['QTY']].astype(object)
                 from openpyxl.utils import get_column_letter
                 qty_col = col_idxs['QTY']
                 excel_row = idx + 1  # 1-indexed Excel row
